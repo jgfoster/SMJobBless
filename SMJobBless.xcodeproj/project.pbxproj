@@ -61,6 +61,8 @@
 		BF65C19011B985C0007C20AB /* MainMenu.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = MainMenu.xib; path = SMJobBlessApp/MainMenu.xib; sourceTree = "<group>"; };
 		E50B1677153E456800E0BAEA /* SMJobBless.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SMJobBless.c; sourceTree = SOURCE_ROOT; };
 		E5ECA41D153CDEF4000163F4 /* SMJobBless.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SMJobBless.h; sourceTree = "<group>"; };
+		E5EED04D153F1F2B00C26F92 /* ReadMe.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = ReadMe.txt; sourceTree = "<group>"; };
+		E5EED04F153F1F5700C26F92 /* ReadMe2.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = ReadMe2.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,6 +118,8 @@
 		29B97314FDCFA39411CA2CEA /* SMJobBless */ = {
 			isa = PBXGroup;
 			children = (
+				E5EED04D153F1F2B00C26F92 /* ReadMe.txt */,
+				E5EED04F153F1F5700C26F92 /* ReadMe2.txt */,
 				E5ECA41D153CDEF4000163F4 /* SMJobBless.h */,
 				E50B1677153E456800E0BAEA /* SMJobBless.c */,
 				4BE4905210445DDD006BE471 /* SMJobBlessHelper */,
