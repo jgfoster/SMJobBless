@@ -39,16 +39,15 @@ int readBytes(int size, int fd, unsigned char * buffer) {
     return 0;
 }
 
-int readMessage(int fd, unsigned char * buffer) {
-    unsigned char version;
-    if (readBytes(1, fd, &version)) return 1;
-    if (version != kMessageVersion) {
-        syslog(LOG_NOTICE, "expected message format version %i but got %i", kMessageVersion, version);
+int readMessage(int fd, struct SMJobBlessMessage * message) {
+    if (readBytes(1, fd, &(message->version))) return 1;
+    if (message->version != kMessageVersion) {
+        syslog(LOG_NOTICE, "expected message format version %i but got %i", kMessageVersion, message->version);
         return 1;
     }
-    unsigned char size;
-    if (readBytes(1, fd, &size)) return 1;
-    return readBytes(size, fd, buffer);
+    if (readBytes(1, fd, &(message->command))) return 1;
+    if (readBytes(1, fd, &(message->dataSize))) return 1;
+    return readBytes(message->dataSize, fd, message->data);
 }
 
 

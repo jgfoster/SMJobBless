@@ -9,7 +9,7 @@
 	<key>CFBundleName</key>
 	<string>SMJobBlessHelper</string>
 	<key>CFBundleVersion</key>
-	<string>1.0.40</string>
+	<string>1.0.47</string>
 	<key>SMAuthorizedClients</key>
 	<array>
 		<string>identifier com.apple.bsd.SMJobBlessApp and certificate leaf[subject.CN] = &quot;Joe Developer&quot;</string>

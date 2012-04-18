@@ -67,10 +67,6 @@ Copyright (C) 2011 Apple Inc. All Rights Reserved.
 
 #define MAX_PATH_SIZE 128
 
-char * get_version() {
-    return getenv("SMJobBlessVersion");
-}
-
 /*
     returns -1 for error, else file descriptor for listener
 */
@@ -165,46 +161,36 @@ int respondToRequests() {
     if (listener_fd == -1) return 1;
     int connection_fd;
     while (0 <= (connection_fd = get_connection_fd(listener_fd))) {
-        unsigned char inBuffer[256], outBuffer[255];
-        outBuffer[0] = kMessageVersion;
-        outBuffer[1] = 0;
-
-        if (readMessage(connection_fd, inBuffer)) break;
-        switch (inBuffer[0]) {
+        struct SMJobBlessMessage messageIn, messageOut;
+        if (readMessage(connection_fd, &messageIn)) break;
+        initMessage(messageOut, messageIn.command);
+        switch (messageIn.command) {
             case SMJobBless_Version:
-                syslog(LOG_NOTICE, "Version command");
-                outBuffer[1] = 4;
-                outBuffer[2] = SMJobBless_Version;
-                outBuffer[3] = kVersionPart1;
-                outBuffer[4] = kVersionPart2;
-                outBuffer[5] = kVersionPart3;
+                messageOut.dataSize = 3;
+                messageOut.data[0] = kVersionPart1;
+                messageOut.data[1] = kVersionPart2;
+                messageOut.data[2] = kVersionPart3;
                 break;
                 
-            case SMJobBless_PID:
-                syslog(LOG_NOTICE, "PID command");
+            case SMJobBless_PID: {
                 int pid = getpid();
-                int size = sizeof(pid);
-                outBuffer[1] = size + 1;
-                outBuffer[2] = SMJobBless_PID;
-                memcpy(outBuffer + 3, &pid, size);
-                break;
-                
-            default:
-                syslog(LOG_NOTICE, "Unknown command: %hhd\n", inBuffer[0]);
-                char* message = "Unknown command!";
-                outBuffer[1] = strlen(message) + 2;    // command plus \0
-                outBuffer[2] = SMJobBless_Error;
-                strcpy((char *)outBuffer + 3, message);
-                break;
-        }
-        int count = outBuffer[1];
-        if (count) {
-            count += 2;
-            int written = write(connection_fd, outBuffer, count);
-            if (written != count) {
-                syslog(LOG_NOTICE, "tried to write %i, but wrote %i", count, written);
+                messageOut.dataSize = sizeof(pid);
+                memcpy(messageOut.data, &pid, messageOut.dataSize);
                 break;
             }
+            default:
+                syslog(LOG_NOTICE, "Unknown command: %hhd\n", messageIn.command);
+                char* message = "Unknown command!";
+                messageOut.command = SMJobBless_Error;
+                messageOut.dataSize = strlen(message) + 1;    // add trailing \0
+                strcpy((char *) messageOut.data, message);
+                break;
+        }
+        int count = messageSize(&messageOut);
+        int written = write(connection_fd, &messageOut, count);
+        if (written != count) {
+            syslog(LOG_NOTICE, "tried to write %i, but wrote %i", count, written);
+            break;
         }
         close(connection_fd);
     }

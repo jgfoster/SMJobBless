@@ -57,7 +57,7 @@ Copyright (C) 2011 Apple Inc. All Rights Reserved.
 #define MAX_PATH_SIZE 128
 
 // returns 0 for success, 1 for error
-int sendMessage(const unsigned char * sendBuffer, unsigned char * receiveBuffer) {
+int sendMessage(const struct SMJobBlessMessage * messageOut, struct SMJobBlessMessage * messageIn) {
     int socket_fd = socket(PF_UNIX, SOCK_STREAM, 0);
     if (socket_fd == -1) {
         NSLog(@"socket() failed!");
@@ -75,14 +75,14 @@ int sendMessage(const unsigned char * sendBuffer, unsigned char * receiveBuffer)
         NSLog(@"Socket connect() failed!");
         return 1;
     }
-    int count = sendBuffer[1] + 2;
-    int written = write(socket_fd, sendBuffer, count);
+    int count = messageSize(messageOut);
+    int written = write(socket_fd, messageOut, count);
     if (count != written) {
         NSLog(@"tried to write %i, but wrote %i", count, written);
         close(socket_fd);
         return 1;
     }
-    if (readMessage(socket_fd, receiveBuffer)) {
+    if (readMessage(socket_fd, messageIn)) {
         NSLog(@"Error reading from socket!");
         close(socket_fd);
         return 1;
@@ -92,15 +92,13 @@ int sendMessage(const unsigned char * sendBuffer, unsigned char * receiveBuffer)
 }
 
 bool isCurrentVersion() {
-    unsigned char outBuffer[3], inBuffer[4];
-    outBuffer[0] = kMessageVersion;
-    outBuffer[1] = 1;
-    outBuffer[2] = SMJobBless_Version;
-    if (sendMessage(outBuffer, inBuffer)) exit(1);
-    return inBuffer[0] == kMessageVersion
-    &&  inBuffer[1] == kVersionPart1
-    &&  inBuffer[2] == kVersionPart2
-    &&  inBuffer[3] == kVersionPart3;
+    struct SMJobBlessMessage messageOut, messageIn;
+    initMessage(messageOut, SMJobBless_Version)
+    if (sendMessage(&messageOut, &messageIn)) return NO;
+    return messageIn.command == kMessageVersion
+        &&  messageIn.data[0] == kVersionPart1
+        &&  messageIn.data[1] == kVersionPart2
+        &&  messageIn.data[2] == kVersionPart3;
 }
 
 
@@ -150,13 +148,11 @@ bool isCurrentVersion() {
 
 - (IBAction)poke:(id)sender;
 {
-    unsigned char outBuffer[3], inBuffer[4];
-    outBuffer[0] = kMessageVersion;
-    outBuffer[1] = 1;
-    outBuffer[2] = SMJobBless_PID;
-    if (sendMessage(outBuffer, inBuffer)) exit(1);
+    struct SMJobBlessMessage messageOut, messageIn;
+    initMessage(messageOut, SMJobBless_PID);
+    if (sendMessage(&messageOut, &messageIn)) exit(1);
     int pid;
-    memcpy(&pid, inBuffer + 1, sizeof(pid));
+    memcpy(&pid, messageIn.data, sizeof(pid));
     NSLog(@"helper PID is %i", pid);
 }
 

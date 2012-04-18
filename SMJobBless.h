@@ -9,14 +9,7 @@
 #define kHelperIdentifier "com.apple.bsd.SMJobBlessHelper"
 #define kVersionPart1 1
 #define kVersionPart2 0
-#define kVersionPart3 40
-
-// message format (both directions)
-#define kMessageVersion 1
-// byte 0: kMessageVersion
-// byte 1: remaining size (0-253)
-// byte 2: SMJobBlessCommand
-// bytes 3-255: command-specific data (if any)
+#define kVersionPart3 47
 
 enum SMJobBlessCommand {
     SMJobBless_Error    = 0,
@@ -24,6 +17,19 @@ enum SMJobBlessCommand {
     SMJobBless_PID      = 2,
 };
 
-int readMessage(int fd, unsigned char * buffer);
+// This needs to change if the following structure changes
+#define kMessageVersion 1
+
+struct SMJobBlessMessage {
+    unsigned char version;      // kMessageVersion
+    unsigned char command;      // SMJobBlessCommand
+    unsigned char dataSize;     // 0 to 252
+    unsigned char data[252];    // command-specific data
+};
+
+#define messageSize(message_p) sizeof(*message_p) - sizeof((message_p)->data) + (message_p)->dataSize
+#define initMessage(m, c) { m.version = kMessageVersion; m.command = c; m.dataSize = 0; }
+
+int readMessage(int fd, struct SMJobBlessMessage * message);
 
 #endif
